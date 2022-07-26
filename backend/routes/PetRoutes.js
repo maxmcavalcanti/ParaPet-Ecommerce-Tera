@@ -24,8 +24,9 @@ router.patch(
   PetController.updatePetById
 );
 router.patch("/schedule/:id", verifyToken, PetController.schedule);
-router.patch("/myadoptions/:id", verifyToken, PetController.deleteProduct);
-router.patch("/cart/:id", verifyToken, PetController.updateCart);
+router.delete("/myadoptions/:id", verifyToken, PetController.deleteProduct);
+router.patch("/myadoptions/cart/:id",verifyToken, PetController.updateCart);
+router.patch("/myadoptions/cart/down/:id",verifyToken, PetController.updateCartDown);
 router.patch("/conclude/:id", verifyToken, PetController.concludeAdoption);
 
 module.exports = router;

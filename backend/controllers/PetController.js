@@ -163,6 +163,7 @@ module.exports = class PetController {
 
   static async deleteProduct(req, res) {
     const id = req.params.id;
+    console.log(id)
 
     //check if id is valid
     if (!ObjectId.isValid(id)) {
@@ -282,21 +283,23 @@ module.exports = class PetController {
     const user = await getUserByToken(token);
 
     //check if user already has in chart
-    const chart = user.chart;
+    let chart = user.chart;
     const filteredCart = chart.filter((pet) => {
       return pet._id.toString() === id.toString();
     });
 
     if (filteredCart.length !== 0) {
       res.status(409).json({ message: "Produto já adicionado" });
-      return;
+   
+      return
     }
+
     user.chart.push({
       _id: pet._id,
       name: pet.name,
       image: pet.images,
       price: pet.price,
-      quantity: 1,
+      quantity: pet.quantity || 1,
     });
 
     await User.findByIdAndUpdate(user._id, user);
@@ -306,16 +309,9 @@ module.exports = class PetController {
   }
 
   static async updateCart(req, res) {
-    const id = req.body.id;
-    const { quantity, images, price } = req.body;
+    const id = req.params.id;
 
-    const chart = {
-      _id: id,
-      images,
-      price,
-      quantity: quantity,
-    };
-    const [token] = getToken(req);
+    const token = getToken(req);
     const user = await getUserByToken(token);
     const index = user.chart.findIndex((item) => item._id.equals(id));
 
@@ -323,8 +319,27 @@ module.exports = class PetController {
       res.status(404).json({ message: "Produto não encontrado" });
       return;
     }
-    user.chart[index].quantity = quantity;
+
+    user.chart[index].quantity += 1;
     await User.findByIdAndUpdate(user._id, user);
+    
+    res.status(200).json({ message: "Produto atualizado com sucesso" });
+  }
+  static async updateCartDown(req, res) {
+    const id = req.params.id;
+
+    const token = getToken(req);
+    const user = await getUserByToken(token);
+    const index = user.chart.findIndex((item) => item._id.equals(id));
+
+    if (index === -1) {
+      res.status(404).json({ message: "Produto não encontrado" });
+      return;
+    }
+
+    user.chart[index].quantity -= 1;
+    await User.findByIdAndUpdate(user._id, user);
+
     res.status(200).json({ message: "Produto atualizado com sucesso" });
   }
 
